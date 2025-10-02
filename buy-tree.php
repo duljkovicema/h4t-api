@@ -14,25 +14,30 @@ function buyTree($pdo, $data) {
     }
 
     try {
+        // 1. Pokušaj ažurirati red (samo ako je user_id NULL)
         $sql = "
             UPDATE trees
             SET user_id = :user_id
             WHERE id = :tree_id AND user_id IS NULL
-            RETURNING id, user_id
         ";
-
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             'user_id' => $user_id,
             'tree_id' => $tree_id
         ]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$row) {
+        if ($stmt->rowCount() === 0) {
+            // ništa nije ažurirano → drvo već zauzeto ili ne postoji
             http_response_code(409);
             echo "Tree already owned";
             return;
         }
+
+        // 2. Vrati podatke o stablu
+        $sql = "SELECT id, user_id FROM trees WHERE id = :tree_id LIMIT 1";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['tree_id' => $tree_id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         http_response_code(200);
         echo json_encode($row);
