@@ -26,6 +26,14 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+}  elseif (preg_match("/\/my-trees$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'my-trees.php';
+        getTrees($pdo);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 } else {
     http_response_code(404);
     echo json_encode(["request_uri" => $_SERVER['REQUEST_URI']]);
