@@ -85,10 +85,3 @@ function registerUser($pdo, $data) {
         }
     }
 }
-
-// === poziv u index.php (router) ===
-if ($method === 'POST' && preg_match("/\/register$/", $request)) {
-    require_once 'register.php';
-    $input = json_decode(file_get_contents("php://input"), true);
-    registerUser($pdo, $input);
-}
