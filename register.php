@@ -85,3 +85,4 @@ function registerUser($pdo, $data) {
         }
     }
 }
+
