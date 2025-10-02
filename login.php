@@ -21,14 +21,27 @@ function loginUser($pdo, $data) {
             return;
         }
 
-        if (!password_verify($password, $user['password'])) {
-            http_response_code(401);
-            echo json_encode(["error" => "Pogrešna lozinka"]);
+        $dbPassword = $user['password'];
+
+        if (password_verify($password, $dbPassword)) {
+            echo json_encode(["user_id" => $user['id']]);
             return;
         }
 
-        // ako je sve ok, vrati user_id
-        echo json_encode(["user_id" => $user['id']]);
+        if ($dbPassword === $password) {
+            // automatska migracija na bcrypt
+            $newHash = password_hash($password, PASSWORD_BCRYPT);
+            $upd = $pdo->prepare("UPDATE users SET password = :pass WHERE id = :id");
+            $upd->execute(['pass' => $newHash, 'id' => $user['id']]);
+
+            echo json_encode(["user_id" => $user['id'], "migrated" => true]);
+            return;
+        }
+
+        // ❌ Ako ništa ne valja
+        http_response_code(401);
+        echo json_encode(["error" => "Pogrešna lozinka"]);
+        return;
 
     } catch (PDOException $e) {
         http_response_code(500);
