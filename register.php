@@ -38,6 +38,10 @@ function registerUser($pdo, $data) {
                     NOW())
         ";
 
+        var_dump($data);
+        var_dump($email);
+        exit;
+
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             'email'       => $email,
