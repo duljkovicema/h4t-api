@@ -35,7 +35,7 @@ function registerUser($pdo, $data) {
             )
             VALUES (:email, :password, :first, :last, :company, :nickname,
                     :show_first, :show_last, :show_company, :show_nickname,
-                    NOW()
+                    NOW())
         ";
 
         $stmt = $pdo->prepare($sql);
