@@ -21,8 +21,7 @@ if (preg_match("/\/upload-tree$/", $request)) {
 } elseif (preg_match("/\/trees$/", $request)) {
     if ($method === 'GET') {
         require_once 'trees.php';
-        echo 'git test';
-        // getTrees($pdo);
+        getTrees($pdo);
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
