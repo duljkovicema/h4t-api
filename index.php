@@ -67,6 +67,15 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/register$/", $request)) {
+    if ($method === 'POST') {
+        require_once 'register.php';
+        $input = json_decode(file_get_contents("php://input"), true);
+        registerUser($pdo, $input);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 } else {
     http_response_code(404);
     echo json_encode(["request_uri" => $_SERVER['REQUEST_URI']]);
