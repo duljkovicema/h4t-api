@@ -85,12 +85,13 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
-} elseif (preg_match("/\/my-tokens$/", $request)) {
+} elseif (preg_match("/\/my-tokens(\?.*)?$/", $request)) {
     if ($method === 'GET') {
         require_once 'my-tokens.php';
-        $user_id = $_GET['user_id'] ?? null;
+        $user_id = $_GET['user_id'];
         getMyTokens($pdo, $user_id);
-    } else {
+    } 
+    else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
