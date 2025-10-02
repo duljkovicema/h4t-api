@@ -71,7 +71,7 @@ if (preg_match("/\/upload-tree$/", $request)) {
     if ($method === 'POST') {
         require_once 'register.php';
         $input = json_decode(file_get_contents("php://input"), true);
-        registerUser($pdo, $input);
+        registerUser($pdo, $input); // <<< SAMO poziv, bez echo
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
