@@ -31,11 +31,11 @@ function registerUser($pdo, $data) {
             INSERT INTO users (
                 email, password, first_name, last_name, company, nickname,
                 show_first_name, show_last_name, show_company, show_nickname,
-                created_at, updated_at
+                created_at
             )
             VALUES (:email, :password, :first, :last, :company, :nickname,
                     :show_first, :show_last, :show_company, :show_nickname,
-                    NOW(), NOW())
+                    NOW()
         ";
 
         $stmt = $pdo->prepare($sql);
