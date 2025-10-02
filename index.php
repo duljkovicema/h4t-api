@@ -26,13 +26,14 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
-}  elseif (preg_match("/\/my-trees$/", $request)) {
+}  elseif (preg_match("/\/my-trees(\?.*)?$/", $request)) {
     if ($method === 'GET') {
         require_once 'my-trees.php';
         $user_id = $_GET['user_id'];
         echo $user_id;
         // getMyTrees($pdo, $user_id);
-    } else {
+    } 
+    else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
