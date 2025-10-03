@@ -107,8 +107,8 @@ if (preg_match("/\/upload-tree$/", $request)) {
 } elseif (preg_match("/\/trees-by-owner$/", $request)) {
     if ($method === 'GET') {
         require_once 'trees-by-owner.php';
-        $owner_id = $_GET['owner_id'] ?? null;
-        getTreesByOwner($pdo, $owner_id);
+        $owner_id = $_GET['user_id'] ?? null;
+        getTreesByOwner($pdo, $user_id);
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
