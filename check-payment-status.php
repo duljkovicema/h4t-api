@@ -1,7 +1,7 @@
 <?php
 
 function checkPaymentStatus($pdo, $id) {
-    if (empty($payment_id)) {
+    if (empty($id)) {
         http_response_code(400);
         echo json_encode(["error" => "id required"]);
         return;
