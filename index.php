@@ -148,11 +148,11 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
-} elseif (preg_match("/\/update-visibility$/", $request)) {
+} elseif (preg_match("/\/like-tree$/", $request)) {
     if ($method === 'POST') {
-        require_once 'update-visibility.php';
+        require_once 'like-tree.php';
         $input = json_decode(file_get_contents("php://input"), true);
-        updateVisibility($pdo, $input);
+        likeTree($pdo, $input);
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
