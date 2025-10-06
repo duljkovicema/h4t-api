@@ -11,7 +11,7 @@ function likeTree($pdo, $input) {
 
     try {
         // provjeri je li već lajkao
-        $stmt = $pdo->prepare("SELECT id FROM trees_likes WHERE tree_id = :tree_id AND user_id = :user_id");
+        $stmt = $pdo->prepare("SELECT id FROM tree_likes WHERE tree_id = :tree_id AND user_id = :user_id");
         $stmt->execute([":tree_id" => $tree_id, ":user_id" => $user_id]);
         $exists = $stmt->fetch();
 
@@ -22,7 +22,7 @@ function likeTree($pdo, $input) {
         }
 
         // upiši novi lajk
-        $stmt = $pdo->prepare("INSERT INTO trees_likes (tree_id, user_id) VALUES (:tree_id, :user_id)");
+        $stmt = $pdo->prepare("INSERT INTO tree_likes (tree_id, user_id) VALUES (:tree_id, :user_id)");
         $stmt->execute([":tree_id" => $tree_id, ":user_id" => $user_id]);
 
         // povećaj broj lajkova u trees tablici
