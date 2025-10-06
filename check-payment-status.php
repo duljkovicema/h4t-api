@@ -1,15 +1,15 @@
 <?php
 
-function checkPaymentStatus($pdo, $payment_id) {
+function checkPaymentStatus($pdo, $id) {
     if (empty($payment_id)) {
         http_response_code(400);
-        echo json_encode(["error" => "payment_id required"]);
+        echo json_encode(["error" => "id required"]);
         return;
     }
 
     try {
-        $stmt = $pdo->prepare("SELECT status FROM payments WHERE payment_id = :payment_id");
-        $stmt->execute([":payment_id" => $payment_id]);
+        $stmt = $pdo->prepare("SELECT status FROM payments WHERE id = :id");
+        $stmt->execute([":id" => $id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($row) {

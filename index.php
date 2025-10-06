@@ -124,8 +124,8 @@ if (preg_match("/\/upload-tree$/", $request)) {
 } elseif (preg_match("/\/check-payment-status(\?.*)?$/", $request)) {
     if ($method === 'GET') {
         require_once 'check-payment-status.php';
-        $payment_id = $_GET['payment_id'] ?? null;
-        checkPaymentStatus($pdo, $payment_id);
+        $payment_id = $_GET['id'] ?? null;
+        checkPaymentStatus($pdo, $id);
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
