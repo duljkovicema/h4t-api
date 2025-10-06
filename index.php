@@ -121,6 +121,15 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/check-payment-status(\?.*)?$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'check-payment-status.php';
+        $payment_id = $_GET['payment_id'] ?? null;
+        checkPaymentStatus($pdo, $payment_id);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 } else {
     http_response_code(404);
     echo json_encode(["request_uri" => $_SERVER['REQUEST_URI']]);
