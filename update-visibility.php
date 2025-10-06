@@ -21,7 +21,7 @@ function updateVisibility($pdo, $input) {
 
     try {
         // ⚠️ dinamičko polje – koristi se samo nakon validacije!
-        $sql = "UPDATE users SET {$field} = :value, updated_at = NOW() WHERE id = :user_id";
+        $sql = "UPDATE users SET {$field} = :value WHERE id = :user_id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ":value"   => $value,
