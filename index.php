@@ -124,7 +124,7 @@ if (preg_match("/\/upload-tree$/", $request)) {
 } elseif (preg_match("/\/check-payment-status(\?.*)?$/", $request)) {
     if ($method === 'GET') {
         require_once 'check-payment-status.php';
-        $payment_id = $_GET['id'] ?? null;
+        $id = $_GET['id'] ?? null;
         checkPaymentStatus($pdo, $id);
     } else {
         http_response_code(405);
