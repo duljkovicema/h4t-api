@@ -157,6 +157,25 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/unlike-tree$/", $request)) {
+    if ($method === 'POST') {
+        require_once 'unlike-tree.php';
+        $input = json_decode(file_get_contents("php://input"), true);
+        unlikeTree($pdo, $input);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
+} elseif (preg_match("/\/tree-likes(\?.*)?$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'tree-likes.php';
+        $tree_id = $_GET['tree_id'] ?? null;
+        $user_id = $_GET['user_id'] ?? null;
+        getTreeLikes($pdo, $tree_id, $user_id);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 } else {
     http_response_code(404);
     echo json_encode(["request_uri" => $_SERVER['REQUEST_URI']]);
