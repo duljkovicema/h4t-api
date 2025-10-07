@@ -37,7 +37,7 @@ function getTrees($pdo) {
                 ) AS display_name
             FROM trees t
             LEFT JOIN users u ON t.created_by = u.id
-            ORDER BY $orderBy
+            ORDER BY t.created_at DESC
         ";
 
         $stmt = $pdo->query($sql);
