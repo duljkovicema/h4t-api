@@ -4,9 +4,9 @@ function getTrees($pdo) {
     try {
         $sort = isset($_GET['sort']) ? strtolower(trim($_GET['sort'])) : '';
         // Bez prioriteta kupljeno/otkupljeno – globalno sortiranje
-        $orderBy = "t.created_at DESC, t.id DESC";
+        $orderBy = "t.created_at_local DESC, t.id DESC";
         if ($sort === 'likes') {
-            $orderBy = "t.likes DESC, t.created_at DESC, t.id DESC";
+            $orderBy = "t.likes DESC, t.created_at_local DESC, t.id DESC";
         }
 
         $sql = "
