@@ -31,7 +31,7 @@ function getTrees($pdo) {
                 ) AS display_name
             FROM trees t
             LEFT JOIN users u ON t.created_by = u.id
-            ORDER BY (t.user_id IS NULL) DESC, t.id DESC
+            ORDER BY (t.user_id IS NULL) DESC, t.likes DESC, t.id DESC
         ";
 
         $stmt = $pdo->query($sql);
