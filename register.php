@@ -9,7 +9,7 @@ function registerUser($pdo, $data) {
     $first     = $data['first_name'] ?? null;
     $last      = $data['last_name']  ?? null;
     $company   = $data['company']    ?? null;
-    $nickname  = $data['nickname']   ?? null;
+    $nickname  = isset($data['nickname']) ? trim($data['nickname']) : null;
 
     $show_first    = array_key_exists('show_first_name', $data) ? (bool)$data['show_first_name'] : true;
     $show_last     = array_key_exists('show_last_name', $data) ? (bool)$data['show_last_name'] : true;
@@ -17,9 +17,27 @@ function registerUser($pdo, $data) {
     $show_nickname = array_key_exists('show_nickname', $data) ? (bool)$data['show_nickname'] : true;
 
     // validacija
-    if (!$email || !$password) {
+    if (!$email || !$password || !$nickname) {
         http_response_code(400);
-        echo json_encode(["error" => "Email i lozinka su obavezni."]);
+        echo json_encode(["error" => "Email, lozinka i nadimak su obavezni."]);
+        return;
+    }
+
+    // provjera jedinstvenosti nadimka prije inserta
+    try {
+        $nicknameCheck = $pdo->prepare("SELECT 1 FROM users WHERE nickname = :nickname LIMIT 1");
+        $nicknameCheck->execute(['nickname' => $nickname]);
+        if ($nicknameCheck->fetchColumn()) {
+            http_response_code(400);
+            echo json_encode(["error" => "Nadimak je već zauzet."]);
+            return;
+        }
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            "error" => "Database error",
+            "details" => $e->getMessage()
+        ]);
         return;
     }
 
@@ -75,7 +93,7 @@ function registerUser($pdo, $data) {
         // Unique constraint violation (MySQL error 1062, PostgreSQL 23505)
         if ($e->getCode() == 1062 || $e->getCode() == "23505") {
             http_response_code(400);
-            echo json_encode(["error" => "Email već postoji."]);
+            echo json_encode(["error" => "Email ili nadimak već postoji."]);
         } else {
             http_response_code(500);
             echo json_encode([
