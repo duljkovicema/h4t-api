@@ -46,17 +46,16 @@ function uploadTree($pdo) {
         // Pokušaj s novim kolonama
         $stmt = $pdo->prepare("
             INSERT INTO trees (
-                latitude, longitude, altitude, created_at, created_at_local, image_path,
+                latitude, longitude, created_at, created_at_local, image_path,
                 user_id, height_m, diameter_cm, species, carbon_kg,
                 no2_g_per_year, so2_g_per_year, o3_g_per_year, created_by,
-                sensor_data, analysis_confidence
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                altitude, sensor_data, analysis_confidence
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->execute([
             floatval($lat),
             floatval($lon),
-            $altitude ? floatval($altitude) : null,
             $ts,
             $localTs,
             json_encode($photoPaths),
@@ -69,6 +68,7 @@ function uploadTree($pdo) {
             $so2_g_per_year ? floatval($so2_g_per_year) : null,
             $o3_g_per_year ? floatval($o3_g_per_year) : null,
             $user_id ? intval($user_id) : null,
+            $altitude ? floatval($altitude) : null,
             $sensor_data ?: null,
             $analysis_confidence ? floatval($analysis_confidence) : null
         ]);
