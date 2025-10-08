@@ -9,6 +9,7 @@ function uploadTree($pdo) {
 
     $lat = $_POST['lat'] ?? null;
     $lon = $_POST['lon'] ?? null;
+    $altitude = $_POST['altitude'] ?? null;
     $user_id = $_POST['user_id'] ?? null;
     $height_m = $_POST['height_m'] ?? null;
     $diameter_cm = $_POST['diameter_cm'] ?? null;
@@ -17,6 +18,8 @@ function uploadTree($pdo) {
     $no2_g_per_year = $_POST['no2_g_per_year'] ?? null;
     $so2_g_per_year = $_POST['so2_g_per_year'] ?? null;
     $o3_g_per_year = $_POST['o3_g_per_year'] ?? null;
+    $sensor_data = $_POST['sensor_data'] ?? null;
+    $analysis_confidence = $_POST['analysis_confidence'] ?? null;
 
     if ($lat === null || $lon === null) {
         http_response_code(400);
@@ -41,15 +44,17 @@ function uploadTree($pdo) {
 
     $stmt = $pdo->prepare("
         INSERT INTO trees (
-            latitude, longitude, created_at, created_at_local, image_path,
+            latitude, longitude, altitude, created_at, created_at_local, image_path,
             user_id, height_m, diameter_cm, species, carbon_kg,
-            no2_g_per_year, so2_g_per_year, o3_g_per_year, created_by
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            no2_g_per_year, so2_g_per_year, o3_g_per_year, created_by,
+            sensor_data, analysis_confidence
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $stmt->execute([
         floatval($lat),
         floatval($lon),
+        $altitude ? floatval($altitude) : null,
         $ts,
         $localTs,
         json_encode($photoPaths),
@@ -61,7 +66,9 @@ function uploadTree($pdo) {
         $no2_g_per_year ? floatval($no2_g_per_year) : null,
         $so2_g_per_year ? floatval($so2_g_per_year) : null,
         $o3_g_per_year ? floatval($o3_g_per_year) : null,
-        $user_id ? intval($user_id) : null
+        $user_id ? intval($user_id) : null,
+        $sensor_data ?: null,
+        $analysis_confidence ? floatval($analysis_confidence) : null
     ]);
 
     echo json_encode(["id" => $pdo->lastInsertId()]);
