@@ -13,7 +13,16 @@ function createCardPayment($pdo, $data) {
 
     try {
         // Stripe API konfiguracija
-        $stripe_secret_key = getenv("STRIPE_SECRET_KEY") ?: "sk_test_..."; // Postavite svoj Stripe secret key
+        $stripe_secret_key = getenv("STRIPE_SECRET_KEY");
+        
+        if (!$stripe_secret_key) {
+            http_response_code(500);
+            echo json_encode([
+                "error" => "Stripe API key nije konfiguriran",
+                "details" => "Postavite STRIPE_SECRET_KEY environment varijablu"
+            ]);
+            return;
+        }
         
         $payload = [
             "amount" => (int)$amount, // minor units (5000 = 50.00 EUR)
