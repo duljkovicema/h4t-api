@@ -37,8 +37,8 @@ function getLatestVersion() {
         
         echo json_encode([
             "version" => $data['version'] ?? "1.0.0",
-            "url" => $url,
-            "platform" => $platform,
+            "iosUrl" => $data['iosUrl'] ?? null,
+            "androidUrl" => $data['androidUrl'] ?? null,
         ]);
     } catch (Throwable $e) {
         http_response_code(500);
