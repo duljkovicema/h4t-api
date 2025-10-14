@@ -104,6 +104,15 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/create-card-payment$/", $request)) {
+    if ($method === 'POST') {
+        require_once 'create-card-payment.php';
+        $input = json_decode(file_get_contents("php://input"), true);
+        createCardPayment($pdo, $input);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 } elseif (preg_match("/\/trees-by-owner(\?.*)?$/", $request)) {
     if ($method === 'GET') {
         require_once 'trees-by-owner.php';
@@ -117,6 +126,14 @@ if (preg_match("/\/upload-tree$/", $request)) {
     if ($method === 'POST') {
         require_once 'revolut-webhook.php';
         handleRevolutWebhook($pdo);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
+} elseif (preg_match("/\/stripe-webhook$/", $request)) {
+    if ($method === 'POST') {
+        require_once 'stripe-webhook.php';
+        handleStripeWebhook($pdo);
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
