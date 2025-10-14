@@ -13,13 +13,13 @@ function createCardPayment($pdo, $data) {
 
     try {
         // Stripe API konfiguracija
-        $stripe_secret_key = getenv("STRIPE_SECRET_KEY");
+        $stripe_secret_key = getenv("STRIPE_SECRET_KEY") ?: "sk_test_51H8..."; // Zamijenite s vašim key-om
         
-        if (!$stripe_secret_key) {
+        if (!$stripe_secret_key || $stripe_secret_key === "sk_test_51H8...") {
             http_response_code(500);
             echo json_encode([
                 "error" => "Stripe API key nije konfiguriran",
-                "details" => "Postavite STRIPE_SECRET_KEY environment varijablu"
+                "details" => "Zamijenite 'sk_test_51H8...' s vašim pravim Stripe secret key-om u create-card-payment.php"
             ]);
             return;
         }
