@@ -10,7 +10,8 @@ function getUserProfile($pdo, $user_id) {
     try {
         $sql = "
             SELECT first_name, last_name, company, nickname,
-                   show_first_name, show_last_name, show_company, show_nickname
+                   show_first_name, show_last_name, show_company, show_nickname,
+                   is_admin
             FROM users
             WHERE id = :user_id
         ";

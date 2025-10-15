@@ -14,7 +14,8 @@ function getTreesByOwner($pdo, $owner_id) {
         $sql = "
             SELECT id, latitude, longitude, created_at_local, created_at,
                 image_path, height_m, diameter_cm, species, carbon_kg,
-                no2_g_per_year, so2_g_per_year, o3_g_per_year
+                no2_g_per_year, so2_g_per_year, o3_g_per_year, high_value,
+                created_by
             FROM trees
             WHERE created_by = :owner_id
             ORDER BY id DESC
