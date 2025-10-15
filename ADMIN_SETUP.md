@@ -23,14 +23,13 @@ UPDATE users SET is_admin = TRUE WHERE email = 'admin@example.com';
 
 ## 3. Korištenje admin funkcionalnosti
 
-### Admin Login:
+### Automatska detekcija admin korisnika:
 1. Idite na **"High Value"** tab u donjem meniju
-2. Kliknite **"Admin Login"**
-3. Unesite email i lozinku admin korisnika
-4. Nakon uspješne prijave, možete označavati stabla
+2. Ako ste admin korisnik (is_admin = TRUE), vidjet ćete svoja stabla
+3. Ako niste admin, vidjet ćete samo high value stabla
 
 ### Označavanje High Value stabala:
-1. Kada ste prijavljeni kao admin, vidjet ćete **"Označi HV"** gumb pored svakog stabla
+1. Admin korisnici vide svoja stabla s **"Označi HV"** gumbovima
 2. Kliknite gumb da označite stablo kao high value
 3. Stablo će se prikazati u High Value listi
 4. Možete ponovno kliknuti da uklonite oznaku
@@ -38,14 +37,14 @@ UPDATE users SET is_admin = TRUE WHERE email = 'admin@example.com';
 ## 4. Funkcionalnosti
 
 ### Admin može:
-- ✅ Prijaviti se s admin podacima
-- ✅ Označiti bilo koje stablo kao high value
-- ✅ Ukloniti high value oznaku
-- ✅ Vidjeti sva high value stabla u posebnom tabu
+- ✅ Automatski se prepoznaje kao admin (bez dodatne prijave)
+- ✅ Vidjeti svoja stabla u "High Value" tabu
+- ✅ Označiti svoja stabla kao high value
+- ✅ Ukloniti high value oznaku s svojih stabala
 
 ### Obični korisnici mogu:
 - ✅ Vidjeti high value stabla (samo čitanje)
-- ❌ Ne mogu označavati stabla (trebaju admin login)
+- ❌ Ne mogu označavati stabla (nema gumbova)
 
 ## 5. Baza podataka
 
