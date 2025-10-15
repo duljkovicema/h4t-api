@@ -208,6 +208,32 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/admin-login$/", $request)) {
+    if ($method === 'POST') {
+        require_once 'admin-login.php';
+        $input = json_decode(file_get_contents("php://input"), true);
+        adminLogin($pdo, $input);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
+} elseif (preg_match("/\/set-high-value$/", $request)) {
+    if ($method === 'POST') {
+        require_once 'set-high-value.php';
+        $input = json_decode(file_get_contents("php://input"), true);
+        setHighValue($pdo, $input);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
+} elseif (preg_match("/\/high-value-trees$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'high-value-trees.php';
+        getHighValueTrees($pdo);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 } else {
     http_response_code(404);
     echo json_encode(["request_uri" => $_SERVER['REQUEST_URI']]);
