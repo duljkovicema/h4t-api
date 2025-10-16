@@ -12,15 +12,16 @@ function getTreesByOwner($pdo, $owner_id) {
 
     try {
         $sql = "
-            SELECT id, latitude, longitude, created_at_local, created_at,
-                image_path, height_m, diameter_cm, species, carbon_kg,
-                no2_g_per_year, so2_g_per_year, o3_g_per_year, high_value,
-                created_by
-            FROM trees
-            WHERE created_by = :owner_id
-            ORDER BY id DESC
+            SELECT 
+                t.id, t.latitude, t.longitude, t.created_at_local, t.created_at,
+                t.image_path, t.height_m, t.diameter_cm, t.species, t.carbon_kg,
+                t.no2_g_per_year, t.so2_g_per_year, t.o3_g_per_year,
+                z.name as zone_name, z.partner as zone_partner
+            FROM trees t
+            LEFT JOIN zones z ON ST_Contains(z.geom, ST_GeomFromText(CONCAT('POINT(', t.longitude, ' ', t.latitude, ')'), 4326))
+            WHERE t.created_by = :owner_id
+            ORDER BY t.id DESC
         ";
-
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([":owner_id" => $owner_id]);
