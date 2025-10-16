@@ -3,7 +3,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
-function getTreesByOwner($pdo, $owner_id) {
+function getTreesByOwner($pdo, $owner_id)
+{
     if (empty($owner_id)) {
         http_response_code(400);
         echo json_encode(["error" => "owner_id required"]);
@@ -30,7 +31,7 @@ function getTreesByOwner($pdo, $owner_id) {
         header("Content-Type: application/json; charset=UTF-8");
         echo json_encode($rows);
     } catch (PDOException $e) {
-        error_log($e->getMessage());
+        error_log($e->getMessage()); // log error
         http_response_code(500);
         echo json_encode(["error" => "Database error"]);
     }
