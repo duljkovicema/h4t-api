@@ -251,6 +251,13 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/fund-data(\?.*)?$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'fund-data.php';
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 }
 else {
     http_response_code(404);
