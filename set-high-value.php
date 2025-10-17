@@ -37,15 +37,20 @@ function setHighValue($pdo, $data) {
         }
 
         // Ažuriraj high_value flag
+        $new_high_value = $high_value ? 1 : 0;
+        error_log("Updating tree $tree_id: high_value from $high_value to $new_high_value");
+        
         $stmt = $pdo->prepare("
             UPDATE trees 
             SET high_value = :high_value 
             WHERE id = :tree_id
         ");
         $stmt->execute([
-            'high_value' => $high_value ? 1 : 0,
+            'high_value' => $new_high_value,
             'tree_id' => $tree_id
         ]);
+        
+        error_log("Updated rows: " . $stmt->rowCount());
 
         echo json_encode([
             "success" => true,
