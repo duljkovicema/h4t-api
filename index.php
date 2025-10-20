@@ -122,6 +122,15 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/sum-co2(\?.*)?$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'sum-co2.php';
+        $user_id = $_GET['user_id'] ?? null;
+        getSumCO2($pdo, $user_id);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 } elseif (preg_match("/\/revolut-webhook$/", $request)) {
     if ($method === 'POST') {
         require_once 'revolut-webhook.php';
