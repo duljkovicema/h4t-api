@@ -11,15 +11,16 @@ function getUserCO2($pdo, $user_id) {
     }
 
     try {
-        $sql = "SELECT co2, years FROM user_co2 WHERE user_id = :user_id LIMIT 1";
+        // Uzmemo najnoviji zapis s definiranim CO2 (ako postoji više zapisa po korisniku)
+        $sql = "SELECT co2, years FROM user_co2 WHERE user_id = :user_id AND co2 IS NOT NULL ORDER BY id DESC LIMIT 1";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['user_id' => $user_id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($row) {
             echo json_encode([
-                "co2" => $row['co2'],
-                "years" => $row['years']
+                "co2" => is_null($row['co2']) ? null : (float)$row['co2'],
+                "years" => isset($row['years']) ? (int)$row['years'] : null
             ]);
         } else {
             echo json_encode(new stdClass()); // prazan {}
