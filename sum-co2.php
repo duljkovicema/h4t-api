@@ -9,7 +9,7 @@ function getSumCO2($pdo, $user_id)
     }
 
     try {
-        $sql = "SELECT COALESCE(SUM(carbon_kg), 0) AS sum_co2 FROM trees WHERE user_id = :user_id";
+        $sql = "SELECT COALESCE(SUM(carbon_kg), 0) * 100 AS sum_co2 FROM trees WHERE user_id = :user_id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([":user_id" => $user_id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
