@@ -11,7 +11,7 @@ function getUserCO2($pdo, $user_id) {
     }
 
     try {
-        $sql = "SELECT co2, years FROM user_co2 WHERE user_id = :user_id LIMIT 1";
+        $sql = "SELECT co2, years, yearly_average, monthly_average, daily_average FROM user_co2 WHERE user_id = :user_id LIMIT 1";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['user_id' => $user_id]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -19,7 +19,10 @@ function getUserCO2($pdo, $user_id) {
         if ($row) {
             echo json_encode([
                 "co2" => $row['co2'],
-                "years" => $row['years']
+                "years" => $row['years'],
+                "yearly_average" => $row['yearly_average'],
+                "monthly_average" => $row['monthly_average'],
+                "daily_average" => $row['daily_average']
             ]);
         } else {
             echo json_encode(new stdClass()); // prazan {}
