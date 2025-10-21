@@ -28,7 +28,16 @@ function uploadTree($pdo) {
     }
 
     $photoPaths = [];
-    if (!empty($_FILES['photo'])) {
+    
+    // Check if we have image paths (new method) or file uploads (old method)
+    if (isset($_POST['image_paths'])) {
+        // New method: images already uploaded individually
+        $imagePaths = json_decode($_POST['image_paths'], true);
+        if (is_array($imagePaths)) {
+            $photoPaths = $imagePaths;
+        }
+    } elseif (!empty($_FILES['photo'])) {
+        // Old method: upload files now
         foreach ($_FILES['photo']['tmp_name'] as $index => $tmpName) {
             $ext = pathinfo($_FILES['photo']['name'][$index], PATHINFO_EXTENSION);
             $filename = time() . "-" . uniqid() . "." . ($ext ?: "jpg");

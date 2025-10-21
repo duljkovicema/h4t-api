@@ -274,6 +274,14 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/upload-image$/", $request)) {
+    if ($method === 'POST') {
+        require_once 'upload-image.php';
+        uploadImage($pdo);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 }
 else {
     http_response_code(404);
