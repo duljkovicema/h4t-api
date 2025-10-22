@@ -15,6 +15,8 @@ function toggleFavorite($pdo, $input) {
     $tree_id = $input['tree_id'] ?? null;
     $action = $input['action'] ?? 'toggle'; // 'add', 'remove', 'toggle'
     
+    error_log("toggleFavorite called with user_id: $user_id, tree_id: $tree_id, action: $action");
+    
     if (empty($user_id) || empty($tree_id)) {
         http_response_code(400);
         echo json_encode(["error" => "user_id and tree_id required"]);
@@ -22,24 +24,20 @@ function toggleFavorite($pdo, $input) {
     }
     
     try {
-        // Check if user_favorites table exists
-        $tableCheck = $pdo->query("SHOW TABLES LIKE 'user_favorites'");
-        if ($tableCheck->rowCount() == 0) {
-            // Table doesn't exist, create it
-            $createTable = "
-                CREATE TABLE user_favorites (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    user_id INT NOT NULL,
-                    tree_id INT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE KEY unique_user_tree (user_id, tree_id),
-                    INDEX idx_user_id (user_id),
-                    INDEX idx_tree_id (tree_id),
-                    INDEX idx_created_at (created_at)
-                )
-            ";
-            $pdo->exec($createTable);
-        }
+        // Try to create table if it doesn't exist (ignore error if it already exists)
+        $createTable = "
+            CREATE TABLE IF NOT EXISTS user_favorites (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                tree_id INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_user_tree (user_id, tree_id),
+                INDEX idx_user_id (user_id),
+                INDEX idx_tree_id (tree_id),
+                INDEX idx_created_at (created_at)
+            )
+        ";
+        $pdo->exec($createTable);
         // Check if favorite already exists
         $checkSql = "SELECT id FROM user_favorites WHERE user_id = :user_id AND tree_id = :tree_id";
         $checkStmt = $pdo->prepare($checkSql);
@@ -75,6 +73,7 @@ function toggleFavorite($pdo, $input) {
             $isFavorite = false;
         }
         
+        error_log("toggleFavorite success: is_favorite = " . ($isFavorite ? 'true' : 'false'));
         echo json_encode([
             "success" => true,
             "is_favorite" => $isFavorite,
@@ -82,9 +81,10 @@ function toggleFavorite($pdo, $input) {
         ]);
         
     } catch (PDOException $e) {
-        error_log("DB error: " . $e->getMessage());
+        error_log("toggleFavorite DB error: " . $e->getMessage());
+        error_log("toggleFavorite DB error trace: " . $e->getTraceAsString());
         http_response_code(500);
-        echo json_encode(["error" => "Database error"]);
+        echo json_encode(["error" => "Database error: " . $e->getMessage()]);
     }
 }
 
@@ -98,16 +98,20 @@ function getUserFavorites($pdo, $input) {
     }
     
     try {
-        // Check if user_favorites table exists
-        $tableCheck = $pdo->query("SHOW TABLES LIKE 'user_favorites'");
-        if ($tableCheck->rowCount() == 0) {
-            // Table doesn't exist, return empty result
-            echo json_encode([
-                "success" => true,
-                "trees" => []
-            ]);
-            return;
-        }
+        // Try to create table if it doesn't exist (ignore error if it already exists)
+        $createTable = "
+            CREATE TABLE IF NOT EXISTS user_favorites (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                tree_id INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_user_tree (user_id, tree_id),
+                INDEX idx_user_id (user_id),
+                INDEX idx_tree_id (tree_id),
+                INDEX idx_created_at (created_at)
+            )
+        ";
+        $pdo->exec($createTable);
         $sql = "
             SELECT t.*, uf.created_at as favorited_at
             FROM trees t
