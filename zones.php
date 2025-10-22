@@ -18,6 +18,7 @@ function getZones($pdo, $input = [])
             $sql = "
                 SELECT
                     id, name, type, owner, partner, jurisdiction, source, external_id,
+                    tree_count_approx, carbon_kg_approx,
                     ST_AsGeoJSON(geom) AS geometry
                 FROM zones
                 WHERE MBRIntersects(
@@ -35,6 +36,7 @@ function getZones($pdo, $input = [])
             $sql = "
                 SELECT
                     id, name, type, owner, partner, jurisdiction, source, external_id,
+                    tree_count_approx, carbon_kg_approx,
                     ST_AsGeoJSON(geom) AS geometry
                 FROM zones
                 ORDER BY name ASC
@@ -59,6 +61,8 @@ function getZones($pdo, $input = [])
                     'jurisdiction' => $r['jurisdiction'],
                     'source' => $r['source'],
                     'external_id' => $r['external_id'],
+                    'tree_count_approx' => $r['tree_count_approx'] ? (int)$r['tree_count_approx'] : null,
+                    'carbon_kg_approx' => $r['carbon_kg_approx'] ? (float)$r['carbon_kg_approx'] : null,
                 ],
                 'geometry' => json_decode($r['geometry'], true),
             ];
