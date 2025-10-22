@@ -8,8 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-require_once 'config.php';
-
 function toggleFavorite($pdo, $input) {
     $user_id = $input['user_id'] ?? null;
     $tree_id = $input['tree_id'] ?? null;
@@ -149,7 +147,9 @@ $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
 
 try {
-    $pdo = new PDO($dsn, $username, $password, $options);
+    error_log("Loading config.php...");
+    require_once 'config.php';
+    error_log("Config.php loaded successfully, PDO object created");
     
     if ($method === 'POST') {
         toggleFavorite($pdo, $input);
@@ -162,7 +162,8 @@ try {
     
 } catch (PDOException $e) {
     error_log("Database connection failed: " . $e->getMessage());
+    error_log("Database connection failed trace: " . $e->getTraceAsString());
     http_response_code(500);
-    echo json_encode(["error" => "Database connection failed"]);
+    echo json_encode(["error" => "Database connection failed: " . $e->getMessage()]);
 }
 ?>
