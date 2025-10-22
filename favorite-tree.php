@@ -22,6 +22,24 @@ function toggleFavorite($pdo, $input) {
     }
     
     try {
+        // Check if user_favorites table exists
+        $tableCheck = $pdo->query("SHOW TABLES LIKE 'user_favorites'");
+        if ($tableCheck->rowCount() == 0) {
+            // Table doesn't exist, create it
+            $createTable = "
+                CREATE TABLE user_favorites (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    tree_id INT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY unique_user_tree (user_id, tree_id),
+                    INDEX idx_user_id (user_id),
+                    INDEX idx_tree_id (tree_id),
+                    INDEX idx_created_at (created_at)
+                )
+            ";
+            $pdo->exec($createTable);
+        }
         // Check if favorite already exists
         $checkSql = "SELECT id FROM user_favorites WHERE user_id = :user_id AND tree_id = :tree_id";
         $checkStmt = $pdo->prepare($checkSql);
@@ -80,6 +98,16 @@ function getUserFavorites($pdo, $input) {
     }
     
     try {
+        // Check if user_favorites table exists
+        $tableCheck = $pdo->query("SHOW TABLES LIKE 'user_favorites'");
+        if ($tableCheck->rowCount() == 0) {
+            // Table doesn't exist, return empty result
+            echo json_encode([
+                "success" => true,
+                "trees" => []
+            ]);
+            return;
+        }
         $sql = "
             SELECT t.*, uf.created_at as favorited_at
             FROM trees t
