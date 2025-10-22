@@ -20,7 +20,7 @@ function getJsonInput() {
 }
 
 // Funkcija za provjeru notifikacija za korisnika
-function checkUserNotifications($pdo, $userId) {
+function checkUserNotifications($pdo, $userId) { // OK
     try {
         $stmt = $pdo->prepare("
             SELECT n.id, n.name, n.kategorija, n.body, un.seen_at
