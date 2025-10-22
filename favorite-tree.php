@@ -40,12 +40,14 @@ function toggleFavorite($pdo, $input) {
         $pdo->exec($createTable);
         // Check if favorite already exists
         $checkSql = "SELECT id FROM user_favorites WHERE user_id = :user_id AND tree_id = :tree_id";
+        error_log("toggleFavorite check SQL: $checkSql with user_id: $user_id, tree_id: $tree_id");
         $checkStmt = $pdo->prepare($checkSql);
         $checkStmt->execute([
             ':user_id' => (int)$user_id,
             ':tree_id' => (int)$tree_id
         ]);
         $existing = $checkStmt->fetch();
+        error_log("toggleFavorite existing result: " . ($existing ? 'found' : 'not found'));
         
         $isFavorite = $existing !== false;
         
@@ -53,32 +55,38 @@ function toggleFavorite($pdo, $input) {
             // Add to favorites
             if (!$isFavorite) {
                 $insertSql = "INSERT INTO user_favorites (user_id, tree_id, created_at) VALUES (:user_id, :tree_id, NOW())";
+                error_log("toggleFavorite INSERT SQL: $insertSql with user_id: $user_id, tree_id: $tree_id");
                 $insertStmt = $pdo->prepare($insertSql);
                 $insertStmt->execute([
                     ':user_id' => (int)$user_id,
                     ':tree_id' => (int)$tree_id
                 ]);
+                error_log("toggleFavorite INSERT executed successfully");
             }
             $isFavorite = true;
         } elseif ($action === 'remove' || ($action === 'toggle' && $isFavorite)) {
             // Remove from favorites
             if ($isFavorite) {
                 $deleteSql = "DELETE FROM user_favorites WHERE user_id = :user_id AND tree_id = :tree_id";
+                error_log("toggleFavorite DELETE SQL: $deleteSql with user_id: $user_id, tree_id: $tree_id");
                 $deleteStmt = $pdo->prepare($deleteSql);
                 $deleteStmt->execute([
                     ':user_id' => (int)$user_id,
                     ':tree_id' => (int)$tree_id
                 ]);
+                error_log("toggleFavorite DELETE executed successfully");
             }
             $isFavorite = false;
         }
         
         error_log("toggleFavorite success: is_favorite = " . ($isFavorite ? 'true' : 'false'));
-        echo json_encode([
+        $response = [
             "success" => true,
             "is_favorite" => $isFavorite,
             "action" => $isFavorite ? "added" : "removed"
-        ]);
+        ];
+        error_log("toggleFavorite response: " . json_encode($response));
+        echo json_encode($response);
         
     } catch (PDOException $e) {
         error_log("toggleFavorite DB error: " . $e->getMessage());
