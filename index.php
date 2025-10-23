@@ -289,7 +289,14 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
-} 
+} elseif (preg_match("/\/notifications(\?.*)?$/", $request)) {
+    if ($method === 'GET' || $method === 'POST') {
+        require_once 'notifications.php';
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
+}
 else {
     http_response_code(404);
     echo json_encode(["request_uri" => $_SERVER['REQUEST_URI']]);
