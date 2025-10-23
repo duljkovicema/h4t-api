@@ -3,7 +3,7 @@
 require_once 'config.php';
 
 // Jednostavna autentifikacija (možete dodati pravu autentifikaciju)
-$admin_password = "admin123"; // Promijenite ovo u produkciji!
+$admin_password = "admin123"; // PROMIJENITI U PRAVU AUTENTIFIKACIJU
 
 if ($_POST['action'] === 'login') {
     if ($_POST['password'] === $admin_password) {

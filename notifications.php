@@ -147,6 +147,17 @@ try {
                     ]);
                     break;
                     
+                case 'ping':
+                    // PING TEST - jednostavan test da vidimo da li se poziva
+                    error_log("🔔 PING: Notifications.php je pozvan! Timestamp: " . date('Y-m-d H:i:s'));
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'PONG! Notifications.php radi!',
+                        'timestamp' => date('Y-m-d H:i:s'),
+                        'server' => 'H4T API Server'
+                    ]);
+                    break;
+                    
                 default:
                     http_response_code(400);
                     echo json_encode(['error' => 'Nepoznata akcija']);
@@ -197,6 +208,18 @@ try {
                         http_response_code(500);
                         echo json_encode(['error' => 'Greška pri kreiranju notifikacije']);
                     }
+                    break;
+                    
+                case 'ping':
+                    // PING TEST - jednostavan test da vidimo da li se poziva
+                    error_log("🔔 PING POST: Notifications.php je pozvan! Timestamp: " . date('Y-m-d H:i:s'));
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'PONG! Notifications.php radi!',
+                        'timestamp' => date('Y-m-d H:i:s'),
+                        'server' => 'H4T API Server',
+                        'method' => 'POST'
+                    ]);
                     break;
                     
                 default:
