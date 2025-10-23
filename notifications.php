@@ -83,7 +83,7 @@ function getUnseenNotificationsByCategory($pdo, $userId, $category) {
             ORDER BY n.created_at DESC
         ");
         $stmt->execute([$userId, $category]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);  // Fetchabhe svih notifsa za kategoriju
     } catch (PDOException $e) {
         error_log("Error getting unseen notifications: " . $e->getMessage());
         return [];
