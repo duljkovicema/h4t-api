@@ -143,10 +143,12 @@ if ($is_logged_in) {
                     <label>Kategorija (Tab):</label>
                     <select name="kategorija" required>
                         <option value="">Odaberite kategoriju</option>
-                        <option value="Moja stabla">Moja stabla</option>
+                        <option value="Moj CO₂">Moj CO₂</option>
+                        <option value="Moji tokeni">Moji tokeni</option>
                         <option value="Sva stabla">Sva stabla</option>
-                        <option value="Moj Co2">Moj Co2</option>
                         <option value="RLG">RLG</option>
+                        <option value="Unesi stablo">Unesi stablo</option>
+                        <option value="Zeleni fond">Zeleni fond</option>
                     </select>
                 </div>
                 <div class="form-group">
