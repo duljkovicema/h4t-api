@@ -45,3 +45,6 @@ function getLatestVersion() {
         echo json_encode(["error" => "Failed to read version", "details" => $e->getMessage()]);
     }
 }
+
+// Pozovi funkciju
+getLatestVersion();
