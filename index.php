@@ -289,6 +289,13 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/add-is-owner-column$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'add-is-owner-column.php';
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 }
 else {
     http_response_code(404);
