@@ -38,27 +38,48 @@ try {
         exit;
     }
     
-    // Postavi stablo kao high value s vrijednošću i imenom
-    $sql = "UPDATE trees SET 
-            high_value = 1, 
-            high_value_cost = :high_value_cost, 
-            high_value_name = :high_value_name 
-            WHERE id = :tree_id";
+    // Odredi da li se stablo postavlja ili uklanja kao high value
+    $isRemoving = ($input['high_value_cost'] == 0 && $input['high_value_name'] == "");
     
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':high_value_cost' => $input['high_value_cost'],
-        ':high_value_name' => $input['high_value_name'],
-        ':tree_id' => $input['tree_id']
-    ]);
-    
-    echo json_encode([
-        "success" => true,
-        "message" => "Tree set as high value successfully",
-        "tree_id" => $input['tree_id'],
-        "high_value_cost" => $input['high_value_cost'],
-        "high_value_name" => $input['high_value_name']
-    ]);
+    if ($isRemoving) {
+        // Ukloni high value status
+        $sql = "UPDATE trees SET 
+                high_value = 0, 
+                high_value_cost = 0, 
+                high_value_name = '' 
+                WHERE id = :tree_id";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':tree_id' => $input['tree_id']]);
+        
+        echo json_encode([
+            "success" => true,
+            "message" => "Tree removed from high value successfully",
+            "tree_id" => $input['tree_id']
+        ]);
+    } else {
+        // Postavi stablo kao high value s vrijednošću i imenom
+        $sql = "UPDATE trees SET 
+                high_value = 1, 
+                high_value_cost = :high_value_cost, 
+                high_value_name = :high_value_name 
+                WHERE id = :tree_id";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':high_value_cost' => $input['high_value_cost'],
+            ':high_value_name' => $input['high_value_name'],
+            ':tree_id' => $input['tree_id']
+        ]);
+        
+        echo json_encode([
+            "success" => true,
+            "message" => "Tree set as high value successfully",
+            "tree_id" => $input['tree_id'],
+            "high_value_cost" => $input['high_value_cost'],
+            "high_value_name" => $input['high_value_name']
+        ]);
+    }
     
 } catch (PDOException $e) {
     error_log("Database error: " . $e->getMessage());
