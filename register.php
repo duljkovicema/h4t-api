@@ -3,7 +3,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
-function registerUser($pdo, $data) {
+function registerUser($pdo, $data) { 
     $email     = $data['email']     ?? null;
     $password  = $data['password']  ?? null;
     $first     = $data['first_name'] ?? null;
