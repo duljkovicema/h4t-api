@@ -81,13 +81,12 @@ function getUnseenNotificationsByCategory($pdo, $userId, $category) {
             LEFT JOIN user_notif un ON n.id = un.notification_id AND un.user_id = ?
             WHERE n.kategorija = ? AND (un.seen_at IS NULL OR un.id IS NULL)
             ORDER BY n.created_at DESC
-            LIMIT 1
         ");
         $stmt->execute([$userId, $category]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         error_log("Error getting unseen notifications: " . $e->getMessage());
-        return null;
+        return [];
     }
 }
 
@@ -139,11 +138,11 @@ try {
                         exit;
                     }
                     
-                    $notification = getUnseenNotificationsByCategory($pdo, $userId, $category);
+                    $notifications = getUnseenNotificationsByCategory($pdo, $userId, $category);
                     echo json_encode([
                         'success' => true,
-                        'notification' => $notification,
-                        'hasUnseen' => $notification !== null
+                        'notifications' => $notifications,
+                        'hasUnseen' => !empty($notifications)
                     ]);
                     break;
                     
