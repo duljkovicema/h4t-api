@@ -1,7 +1,17 @@
 <?php
-require_once 'config.php';
-
 header('Content-Type: application/json');
+
+try {
+    require_once 'config.php';
+} catch (Exception $e) {
+    error_log("Config error: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "error" => "Configuration error: " . $e->getMessage()
+    ]);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -56,6 +66,13 @@ try {
     echo json_encode([
         "success" => false,
         "error" => "Database error: " . $e->getMessage()
+    ]);
+} catch (Exception $e) {
+    error_log("General error: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "error" => "General error: " . $e->getMessage()
     ]);
 }
 ?>
