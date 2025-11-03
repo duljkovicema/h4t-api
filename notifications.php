@@ -114,9 +114,10 @@ function getNotificationHistory($pdo, $userId, $limit = 3, $offset = 0) {
         $userId = (int)$userId;
         
         // Prvo dohvati ukupan broj notifikacija (SVE neovisno o pročitanosti)
+        // Koristi isti pristup kao getUnseenNotificationsByCategory koji radi
         $countStmt = $pdo->prepare("
             SELECT COUNT(*) as total
-            FROM notifications
+            FROM notifications n
         ");
         $countStmt->execute();
         $totalResult = $countStmt->fetch(PDO::FETCH_ASSOC);
@@ -125,17 +126,20 @@ function getNotificationHistory($pdo, $userId, $limit = 3, $offset = 0) {
         // Zatim dohvati notifikacije s paginacijom
         // Važno: vraćamo SVE notifikacije neovisno o statusu pročitanosti
         // LEFT JOIN je samo da dohvatimo seen_at ako postoji
+        // Koristi direktno limit i offset u SQL-u jer su sigurno integeri
+        $limitSafe = (int)$limit;
+        $offsetSafe = (int)$offset;
         $stmt = $pdo->prepare("
             SELECT n.id, n.name, n.kategorija, n.body, n.created_at, un.seen_at
             FROM notifications n
             LEFT JOIN user_notif un ON n.id = un.notification_id AND un.user_id = ?
             ORDER BY n.created_at DESC
-            LIMIT ? OFFSET ?
+            LIMIT {$limitSafe} OFFSET {$offsetSafe}
         ");
-        $stmt->execute([$userId, $limit, $offset]);
-        $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        error_log("Notification history: total=$total, returned=" . count($notifications) . ", offset=$offset, limit=$limit");
+        // Koristi execute s array - isti pristup kao u getUnseenNotificationsByCategory
+        $stmt->execute([$userId]);
+        $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         return [
             'notifications' => $notifications,
@@ -144,6 +148,7 @@ function getNotificationHistory($pdo, $userId, $limit = 3, $offset = 0) {
         ];
     } catch (PDOException $e) {
         error_log("Error getting notification history: " . $e->getMessage());
+        error_log("SQL Error Code: " . $e->getCode());
         return [
             'notifications' => [],
             'total' => 0,
@@ -200,7 +205,7 @@ try {
                     
                     if (!$userId) {
                         http_response_code(400);
-                        echo json_encode(['error' => 'user_id je obavezan']);
+                        echo json_encode(['error' => 'user_id je obavezan']); // Bok
                         exit;
                     }
                     
