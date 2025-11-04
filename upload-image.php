@@ -3,8 +3,6 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
-require_once 'config.php';
-
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
@@ -14,6 +12,27 @@ header('Access-Control-Allow-Headers: Content-Type');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
+}
+
+// Pokušaj kreirati konekciju direktno, ali ne zaustavljaj ako ne uspije
+$pdo = null;
+try {
+    $host = "localhost";
+    $db_name = "agilosor_h4t";
+    $username = "agilosor_izuna";
+    $password = "h}K(ZC5FaJBX";
+    $port = 3306;
+    
+    $pdo = new PDO(
+        "mysql:host=$host;dbname=$db_name;charset=utf8",
+        $username,
+        $password,
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
+} catch (PDOException $e) {
+    // Ako konekcija ne uspije, nastavi bez baze - upload će raditi bez spremanja u bazu
+    error_log("Database connection failed (continuing without database): " . $e->getMessage());
+    $pdo = null;
 }
 
 function deleteUserImagesWithoutTree($pdo, $userId) {
@@ -168,7 +187,12 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     switch ($method) {
         case 'POST':
-            uploadImage($pdo);
+            if (function_exists('uploadImage')) {
+                uploadImage($pdo);
+            } else {
+                http_response_code(500);
+                echo json_encode(["error" => "uploadImage function not found"]);
+            }
             break;
             
         case 'DELETE':
