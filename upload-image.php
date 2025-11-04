@@ -3,8 +3,6 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
-require_once 'config.php';
-
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
@@ -14,6 +12,27 @@ header('Access-Control-Allow-Headers: Content-Type');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
+}
+
+// Pokušaj učitati config.php i konekciju, ali ne zahtijevaj ga
+$pdo = null;
+try {
+    $host = "localhost";
+    $db_name = "agilosor_h4t";
+    $username = "agilosor_izuna";
+    $password = "h}K(ZC5FaJBX";
+    $port = 3306;
+    
+    $pdo = new PDO(
+        "mysql:host=$host;dbname=$db_name;charset=utf8",
+        $username,
+        $password,
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
+} catch (PDOException $e) {
+    // Ako konekcija ne uspije, nastavi bez baze - upload će raditi bez spremanja u bazu
+    error_log("Database connection failed (continuing without database): " . $e->getMessage());
+    $pdo = null;
 }
 
 function deleteImage($pdo, $imagePath) {
@@ -104,15 +123,17 @@ function uploadImage($pdo) {
         $imagePath = "uploads/" . $filename;
         
         // Store image info in database (optional - for tracking)
-        try {
-            $stmt = $pdo->prepare("
-                INSERT INTO uploaded_images (user_id, image_type, file_path, created_at) 
-                VALUES (?, ?, ?, NOW())
-            ");
-            $stmt->execute([$user_id, $imageType, $imagePath]);
-        } catch (PDOException $e) {
-            // If table doesn't exist, just continue
-            error_log("Could not save image info to database: " . $e->getMessage());
+        if ($pdo) {
+            try {
+                $stmt = $pdo->prepare("
+                    INSERT INTO uploaded_images (user_id, image_type, file_path, created_at) 
+                    VALUES (?, ?, ?, NOW())
+                ");
+                $stmt->execute([$user_id, $imageType, $imagePath]);
+            } catch (PDOException $e) {
+                // If table doesn't exist, just continue
+                error_log("Could not save image info to database: " . $e->getMessage());
+            }
         }
 
         echo json_encode([
@@ -151,6 +172,6 @@ try {
 } catch (Exception $e) {
     error_log("Upload image API error: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(["error" => "Internal server error"]);
+    echo json_encode(["error" => "Internal server error: " . $e->getMessage()]);
 }
 ?>
