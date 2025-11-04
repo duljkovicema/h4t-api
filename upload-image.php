@@ -3,6 +3,66 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
+require_once 'config.php';
+
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+function deleteImage($pdo, $imagePath) {
+    if (!$imagePath) {
+        http_response_code(400);
+        echo json_encode(["error" => "image_path required"]);
+        return;
+    }
+    
+    // Osiguraj da se briše samo iz uploads direktorija (security)
+    $baseDir = __DIR__ . "/uploads";
+    $fullPath = realpath($baseDir . "/" . basename($imagePath));
+    
+    // Provjeri da li je putanja unutar uploads direktorija
+    if (!$fullPath || strpos($fullPath, $baseDir) !== 0) {
+        http_response_code(400);
+        echo json_encode(["error" => "Invalid image path"]);
+        return;
+    }
+    
+    // Obriši fajl ako postoji
+    if (file_exists($fullPath)) {
+        if (unlink($fullPath)) {
+            // Obriši i iz baze ako postoji tabela
+            try {
+                $stmt = $pdo->prepare("DELETE FROM uploaded_images WHERE file_path = ?");
+                $stmt->execute([$imagePath]);
+            } catch (PDOException $e) {
+                // Ako tabela ne postoji, samo nastavi
+                error_log("Could not delete image info from database: " . $e->getMessage());
+            }
+            
+            echo json_encode([
+                "success" => true,
+                "message" => "Image deleted successfully"
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode(["error" => "Failed to delete image file"]);
+        }
+    } else {
+        // Fajl već ne postoji, ali vrati success
+        echo json_encode([
+            "success" => true,
+            "message" => "Image already deleted or not found"
+        ]);
+    }
+}
+
 function uploadImage($pdo) {
     // Ensure uploads directory exists
     $uploadDir = __DIR__ . "/uploads";
@@ -65,5 +125,32 @@ function uploadImage($pdo) {
         http_response_code(500);
         echo json_encode(["error" => "Failed to save image file"]);
     }
+}
+
+// Glavna logika
+$method = $_SERVER['REQUEST_METHOD'];
+
+try {
+    switch ($method) {
+        case 'POST':
+            uploadImage($pdo);
+            break;
+            
+        case 'DELETE':
+            $input = file_get_contents('php://input');
+            $data = json_decode($input, true);
+            $imagePath = $data['image_path'] ?? null;
+            deleteImage($pdo, $imagePath);
+            break;
+            
+        default:
+            http_response_code(405);
+            echo json_encode(["error" => "Method not allowed"]);
+            break;
+    }
+} catch (Exception $e) {
+    error_log("Upload image API error: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(["error" => "Internal server error"]);
 }
 ?>
