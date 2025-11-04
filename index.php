@@ -229,8 +229,6 @@ if (preg_match("/\/upload-tree$/", $request)) {
 } elseif (preg_match("/\/set-high-value$/", $request)) {
     if ($method === 'POST') {
         require_once 'set-high-value.php';
-        $input = json_decode(file_get_contents("php://input"), true);
-        setHighValue($pdo, $input);
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
@@ -248,14 +246,6 @@ if (preg_match("/\/upload-tree$/", $request)) {
         require_once 'zones.php';
         $input = $_GET;
         getZones($pdo, $input);
-    } else {
-        http_response_code(405);
-        echo json_encode(["error" => "Method not allowed"]);
-    }
-} elseif (preg_match("/\/zones$/", $request)) {
-    if ($method === 'GET') {
-        require_once 'zones.php';
-        getZones($pdo);
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
@@ -292,13 +282,6 @@ if (preg_match("/\/upload-tree$/", $request)) {
 } elseif (preg_match("/\/notifications(\?.*)?$/", $request)) {
     if ($method === 'GET' || $method === 'POST') {
         require_once 'notifications.php';
-    } else {
-        http_response_code(405);
-        echo json_encode(["error" => "Method not allowed"]);
-    }
-} elseif (preg_match("/\/set-high-value$/", $request)) {
-    if ($method === 'POST') {
-        require_once 'set-high-value.php';
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
