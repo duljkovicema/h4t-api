@@ -105,6 +105,58 @@ function createNotification($pdo, $name, $category, $body) {
     }
 }
 
+// Funkcija za dohvaćanje povijesti notifikacija s paginacijom
+function getNotificationHistory($pdo, $userId, $limit = 3, $offset = 0) {
+    try {
+        // Osiguraj da su limit i offset integeri
+        $limit = max(1, (int)$limit);
+        $offset = max(0, (int)$offset);
+        $userId = (int)$userId;
+        
+        // Prvo dohvati ukupan broj notifikacija (SVE neovisno o pročitanosti)
+        // Koristi isti pristup kao getUnseenNotificationsByCategory koji radi
+        $countStmt = $pdo->prepare("
+            SELECT COUNT(*) as total
+            FROM notifications n
+        ");
+        $countStmt->execute();
+        $totalResult = $countStmt->fetch(PDO::FETCH_ASSOC);
+        $total = (int)$totalResult['total'];
+        
+        // Zatim dohvati notifikacije s paginacijom
+        // Važno: vraćamo SVE notifikacije neovisno o statusu pročitanosti
+        // LEFT JOIN je samo da dohvatimo seen_at ako postoji
+        // Koristi direktno limit i offset u SQL-u jer su sigurno integeri
+        $limitSafe = (int)$limit;
+        $offsetSafe = (int)$offset;
+        $stmt = $pdo->prepare("
+            SELECT n.id, n.name, n.kategorija, n.body, n.created_at, un.seen_at
+            FROM notifications n
+            LEFT JOIN user_notif un ON n.id = un.notification_id AND un.user_id = ?
+            ORDER BY n.created_at DESC
+            LIMIT {$limitSafe} OFFSET {$offsetSafe}
+        ");
+        
+        // Koristi execute s array - isti pristup kao u getUnseenNotificationsByCategory
+        $stmt->execute([$userId]);
+        $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        return [
+            'notifications' => $notifications,
+            'total' => $total,
+            'has_more' => ($offset + $limit) < $total
+        ];
+    } catch (PDOException $e) {
+        error_log("Error getting notification history: " . $e->getMessage());
+        error_log("SQL Error Code: " . $e->getCode());
+        return [
+            'notifications' => [],
+            'total' => 0,
+            'has_more' => false
+        ];
+    }
+}
+
 // Glavna logika
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
@@ -146,6 +198,25 @@ try {
                     ]);
                     break;
                     
+                case 'history':
+                    $userId = $_GET['user_id'] ?? null;
+                    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 3;
+                    $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+                    
+                    if (!$userId) {
+                        http_response_code(400);
+                        echo json_encode(['error' => 'user_id je obavezan']); // Bok
+                        exit;
+                    }
+                    
+                    $result = getNotificationHistory($pdo, $userId, $limit, $offset);
+                    echo json_encode([
+                        'success' => true,
+                        'notifications' => $result['notifications'],
+                        'total' => $result['total'],
+                        'has_more' => $result['has_more']
+                    ]);
+                    break;
                     
                 default:
                     http_response_code(400);

@@ -229,8 +229,6 @@ if (preg_match("/\/upload-tree$/", $request)) {
 } elseif (preg_match("/\/set-high-value$/", $request)) {
     if ($method === 'POST') {
         require_once 'set-high-value.php';
-        $input = json_decode(file_get_contents("php://input"), true);
-        setHighValue($pdo, $input);
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
@@ -248,14 +246,6 @@ if (preg_match("/\/upload-tree$/", $request)) {
         require_once 'zones.php';
         $input = $_GET;
         getZones($pdo, $input);
-    } else {
-        http_response_code(405);
-        echo json_encode(["error" => "Method not allowed"]);
-    }
-} elseif (preg_match("/\/zones$/", $request)) {
-    if ($method === 'GET') {
-        require_once 'zones.php';
-        getZones($pdo);
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
@@ -296,9 +286,10 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
-} elseif (preg_match("/\/set-high-value$/", $request)) {
-    if ($method === 'POST') {
-        require_once 'set-high-value.php';
+} elseif (preg_match("/\/analytics(\?.*)?$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'analytics.php';
+        getAnalytics($pdo);
     } else {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
