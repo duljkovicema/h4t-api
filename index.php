@@ -303,6 +303,14 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/analytics(\?.*)?$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'analytics.php';
+        getAnalytics($pdo);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 }
 else {
     http_response_code(404);
