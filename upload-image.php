@@ -68,6 +68,4 @@ function uploadImage($pdo) {
         echo json_encode(["error" => "Failed to save image file"]);
     }
 }
-
-uploadImage($pdo);
 ?>
