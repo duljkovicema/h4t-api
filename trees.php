@@ -27,6 +27,9 @@ function getTrees($pdo) {
                 t.so2_g_per_year,
                 t.o3_g_per_year,
                 t.created_by,
+                t.high_value,
+                t.high_value_cost,
+                t.high_value_name,
                 COALESCE(
                     NULLIF(TRIM(CONCAT(
                         IF(u.show_first_name AND u.first_name IS NOT NULL, CONCAT(u.first_name,' '), ''),
