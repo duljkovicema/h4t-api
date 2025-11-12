@@ -49,11 +49,11 @@ function registerUser($pdo, $data) {
             INSERT INTO users (
                 email, password, first_name, last_name, company, nickname,
                 show_first_name, show_last_name, show_company, show_nickname,
-                created_at
+                avatar_url, created_at
             )
             VALUES (:email, :password, :first, :last, :company, :nickname,
                     :show_first, :show_last, :show_company, :show_nickname,
-                    NOW())
+                    :avatar_url, NOW())
         ";
 
         $stmt = $pdo->prepare($sql);
@@ -67,7 +67,8 @@ function registerUser($pdo, $data) {
             'show_first'  => $show_first,
             'show_last'   => $show_last,
             'show_company'=> $show_company,
-            'show_nickname'=> $show_nickname
+            'show_nickname'=> $show_nickname,
+            'avatar_url'  => 'assets/images/avatars/A5.png' // Default avatar za novog korisnika
         ]);
 
         $id = $pdo->lastInsertId();
