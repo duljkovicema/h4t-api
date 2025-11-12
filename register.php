@@ -23,24 +23,6 @@ function registerUser($pdo, $data) {
         return;
     }
 
-    // provjera jedinstvenosti nadimka prije inserta
-    try {
-        $nicknameCheck = $pdo->prepare("SELECT 1 FROM users WHERE nickname = :nickname LIMIT 1");
-        $nicknameCheck->execute(['nickname' => $nickname]);
-        if ($nicknameCheck->fetchColumn()) {
-            http_response_code(400);
-            echo json_encode(["error" => "Nadimak je već zauzet."]);
-            return;
-        }
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo json_encode([
-            "error" => "Database error",
-            "details" => $e->getMessage()
-        ]);
-        return;
-    }
-
     try {
         // hash lozinke
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
@@ -49,11 +31,11 @@ function registerUser($pdo, $data) {
             INSERT INTO users (
                 email, password, first_name, last_name, company, nickname,
                 show_first_name, show_last_name, show_company, show_nickname,
-                created_at
+                avatar_url, created_at
             )
             VALUES (:email, :password, :first, :last, :company, :nickname,
                     :show_first, :show_last, :show_company, :show_nickname,
-                    NOW())
+                    :avatar_url, NOW())
         ";
 
         $stmt = $pdo->prepare($sql);
@@ -67,7 +49,8 @@ function registerUser($pdo, $data) {
             'show_first'  => $show_first,
             'show_last'   => $show_last,
             'show_company'=> $show_company,
-            'show_nickname'=> $show_nickname
+            'show_nickname'=> $show_nickname,
+            'avatar_url'  => 'assets/images/avatars/A5.png' // Default avatar za novog korisnika
         ]);
 
         $id = $pdo->lastInsertId();
@@ -90,17 +73,56 @@ function registerUser($pdo, $data) {
         echo json_encode(["user" => $user]);
 
     } catch (PDOException $e) {
-        // Unique constraint violation (MySQL error 1062, PostgreSQL 23505)
-        if ($e->getCode() == 1062 || $e->getCode() == "23505") {
+        // Log error za debug
+        error_log("Registration error: " . $e->getMessage() . " | Code: " . $e->getCode());
+        
+        // Provjeri unique constraint error
+        // MySQL error code 1062 = Duplicate entry
+        // PostgreSQL error code 23505 = unique_violation
+        $errorCode = $e->getCode();
+        $errorMessage = $e->getMessage();
+        
+        if ($errorCode == 1062 || $errorCode == "23505" || $errorCode == 23505) {
+            // Provjeri da li se radi o email ili nadimak
+            $errorLower = strtolower($errorMessage);
+            
+            if (strpos($errorLower, "email") !== false || 
+                strpos($errorLower, "users.email") !== false ||
+                strpos($errorLower, "duplicate entry") !== false && strpos($errorLower, "email") !== false) {
+                http_response_code(400);
+                echo json_encode(["error" => "Email već postoji."]);
+                return;
+            }
+            
+            if (strpos($errorLower, "nickname") !== false || 
+                strpos($errorLower, "users.nickname") !== false ||
+                strpos($errorLower, "duplicate entry") !== false && strpos($errorLower, "nickname") !== false) {
+                http_response_code(400);
+                echo json_encode(["error" => "Nadimak već postoji."]);
+                return;
+            }
+            
+            // Ako je unique error ali ne znamo koji
             http_response_code(400);
-            echo json_encode(["error" => "Email ili nadimak već postoji."]);
-        } else {
-            http_response_code(500);
-            echo json_encode([
-                "error" => "Database error",
-                "details" => $e->getMessage()
-            ]);
+            echo json_encode(["error" => "Podaci već postoje."]);
+            return;
         }
+        
+        // Ako nije unique constraint, provjeri da li se možda email spominje u grešci
+        $errorLower = strtolower($errorMessage);
+        if (strpos($errorLower, "email") !== false && 
+            (strpos($errorLower, "unique") !== false || strpos($errorLower, "duplicate") !== false)) {
+            http_response_code(400);
+            echo json_encode(["error" => "Email već postoji."]);
+            return;
+        }
+        
+        // Generička greška
+        http_response_code(500);
+        echo json_encode([
+            "error" => "Database error",
+            "details" => $e->getMessage()
+        ]);
     }
 }
 
