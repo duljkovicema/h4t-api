@@ -24,6 +24,23 @@ function registerUser($pdo, $data) {
     }
 
     try {
+        // Provjeri jedinstvenost emaila i nadimka PRIJE INSERT-a
+        $emailCheck = $pdo->prepare("SELECT 1 FROM users WHERE email = :email LIMIT 1");
+        $emailCheck->execute(['email' => $email]);
+        if ($emailCheck->fetchColumn()) {
+            http_response_code(400);
+            echo json_encode(["error" => "Email već postoji."]);
+            return;
+        }
+
+        $nicknameCheck = $pdo->prepare("SELECT 1 FROM users WHERE nickname = :nickname LIMIT 1");
+        $nicknameCheck->execute(['nickname' => $nickname]);
+        if ($nicknameCheck->fetchColumn()) {
+            http_response_code(400);
+            echo json_encode(["error" => "Nadimak već postoji."]);
+            return;
+        }
+
         // hash lozinke
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
@@ -86,19 +103,39 @@ function registerUser($pdo, $data) {
             // Provjeri da li se radi o email ili nadimak
             $errorLower = strtolower($errorMessage);
             
-            if (strpos($errorLower, "email") !== false || 
-                strpos($errorLower, "users.email") !== false ||
-                strpos($errorLower, "duplicate entry") !== false && strpos($errorLower, "email") !== false) {
+            // Provjeri da li se spominje i email i nickname (oba)
+            $hasEmail = (strpos($errorLower, "email") !== false || 
+                        strpos($errorLower, "users.email") !== false ||
+                        strpos($errorLower, "'email'") !== false);
+            
+            $hasNickname = (strpos($errorLower, "nickname") !== false || 
+                           strpos($errorLower, "users.nickname") !== false ||
+                           strpos($errorLower, "'nickname'") !== false);
+            
+            // Ako se spominje nickname, prioritiziraj ga (jer je vjerojatnije da je to problem)
+            if ($hasNickname) {
+                http_response_code(400);
+                echo json_encode(["error" => "Nadimak već postoji."]);
+                return;
+            }
+            
+            // Ako se spominje email
+            if ($hasEmail) {
                 http_response_code(400);
                 echo json_encode(["error" => "Email već postoji."]);
                 return;
             }
             
-            if (strpos($errorLower, "nickname") !== false || 
-                strpos($errorLower, "users.nickname") !== false ||
-                strpos($errorLower, "duplicate entry") !== false && strpos($errorLower, "nickname") !== false) {
+            // Provjeri MySQL format: "Duplicate entry 'value' for key 'key_name'"
+            if (preg_match("/duplicate entry.*for key.*nickname/i", $errorMessage)) {
                 http_response_code(400);
                 echo json_encode(["error" => "Nadimak već postoji."]);
+                return;
+            }
+            
+            if (preg_match("/duplicate entry.*for key.*email/i", $errorMessage)) {
+                http_response_code(400);
+                echo json_encode(["error" => "Email već postoji."]);
                 return;
             }
             
@@ -108,8 +145,14 @@ function registerUser($pdo, $data) {
             return;
         }
         
-        // Ako nije unique constraint, provjeri da li se možda email spominje u grešci
+        // Ako nije unique constraint, provjeri da li se možda email ili nickname spominje u grešci
         $errorLower = strtolower($errorMessage);
+        if (strpos($errorLower, "nickname") !== false && 
+            (strpos($errorLower, "unique") !== false || strpos($errorLower, "duplicate") !== false)) {
+            http_response_code(400);
+            echo json_encode(["error" => "Nadimak već postoji."]);
+            return;
+        }
         if (strpos($errorLower, "email") !== false && 
             (strpos($errorLower, "unique") !== false || strpos($errorLower, "duplicate") !== false)) {
             http_response_code(400);
