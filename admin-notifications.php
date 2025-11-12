@@ -145,6 +145,7 @@ if ($is_logged_in) {
                         <option value="">Odaberite kategoriju</option>
                         <option value="Moj CO₂">Moj CO₂</option>
                         <option value="Moji tokeni">Moji tokeni</option>
+                        <option value="socials">Forest Journal</option>
                         <option value="Sva stabla">Sva stabla</option>
                         <option value="RLG">RLG</option>
                         <option value="Unesi stablo">Unesi stablo</option>

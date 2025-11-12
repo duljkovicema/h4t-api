@@ -272,6 +272,14 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/upload-avatar$/", $request)) {
+    if ($method === 'POST') {
+        require_once 'upload-avatar.php';
+        uploadAvatar($pdo);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 } elseif (preg_match("/\/favorite-tree$/", $request)) {
     if ($method === 'POST' || $method === 'GET') {
         require_once 'favorite-tree.php';
