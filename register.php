@@ -24,6 +24,23 @@ function registerUser($pdo, $data) {
     }
 
     try {
+        // Provjeri jedinstvenost emaila i nadimka PRIJE INSERT-a
+        $emailCheck = $pdo->prepare("SELECT 1 FROM users WHERE email = :email LIMIT 1");
+        $emailCheck->execute(['email' => $email]);
+        if ($emailCheck->fetchColumn()) {
+            http_response_code(400);
+            echo json_encode(["error" => "Email već postoji."]);
+            return;
+        }
+
+        $nicknameCheck = $pdo->prepare("SELECT 1 FROM users WHERE nickname = :nickname LIMIT 1");
+        $nicknameCheck->execute(['nickname' => $nickname]);
+        if ($nicknameCheck->fetchColumn()) {
+            http_response_code(400);
+            echo json_encode(["error" => "Nadimak već postoji."]);
+            return;
+        }
+
         // hash lozinke
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
