@@ -23,6 +23,13 @@ function registerUser($pdo, $data) {
         return;
     }
 
+    // validacija email strukture
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        http_response_code(400);
+        echo json_encode(["error" => "Neispravna email adresa."]);
+        return;
+    }
+
     try {
         // Provjeri jedinstvenost emaila i nadimka PRIJE INSERT-a
         $emailCheck = $pdo->prepare("SELECT 1 FROM users WHERE email = :email LIMIT 1");
