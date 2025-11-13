@@ -280,6 +280,24 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/user-likes-count(\?.*)?$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'user-likes-count.php';
+        $user_id = $_GET['user_id'] ?? null;
+        getUserLikesCount($pdo, $user_id);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
+} elseif (preg_match("/\/user-tree-engagement(\?.*)?$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'user-tree-engagement.php';
+        $user_id = $_GET['user_id'] ?? null;
+        getUserTreeEngagement($pdo, $user_id);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 } elseif (preg_match("/\/favorite-tree$/", $request)) {
     if ($method === 'POST' || $method === 'GET') {
         require_once 'favorite-tree.php';
