@@ -45,12 +45,24 @@ function getTrees($pdo) {
                         IF(u_owner.show_last_name AND u_owner.last_name IS NOT NULL, CONCAT(u_owner.last_name,' '), ''),
                         IF(u_owner.show_company AND u_owner.company IS NOT NULL, CONCAT('(',u_owner.company,')'), ''),
                         IF(u_owner.show_nickname AND u_owner.nickname IS NOT NULL, CONCAT('\"',u_owner.nickname,'\"'), '')
-                    )),''),
+                    )),''), 
                     CASE WHEN t.user_id IS NOT NULL THEN CONCAT('Korisnik #', t.user_id) ELSE NULL END
-                ) AS owner_display_name
+                ) AS owner_display_name,
+                fp.user_id AS first_protector_user_id,
+                COALESCE(
+                    NULLIF(TRIM(CONCAT(
+                        IF(u_fp.show_first_name AND u_fp.first_name IS NOT NULL, CONCAT(u_fp.first_name,' '), ''),
+                        IF(u_fp.show_last_name AND u_fp.last_name IS NOT NULL, CONCAT(u_fp.last_name,' '), ''),
+                        IF(u_fp.show_company AND u_fp.company IS NOT NULL, CONCAT('(',u_fp.company,')'), ''),
+                        IF(u_fp.show_nickname AND u_fp.nickname IS NOT NULL, CONCAT('\"',u_fp.nickname,'\"'), '')
+                    )),''), 
+                    CASE WHEN fp.user_id IS NOT NULL THEN CONCAT('Korisnik #', fp.user_id) ELSE NULL END
+                ) AS first_protector_display_name
             FROM trees t
             LEFT JOIN users u ON t.created_by = u.id
             LEFT JOIN users u_owner ON t.user_id = u_owner.id
+            LEFT JOIN first_protector fp ON fp.tree_id = t.id
+            LEFT JOIN users u_fp ON fp.user_id = u_fp.id
             ORDER BY $orderBy
         ";
 

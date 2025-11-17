@@ -298,6 +298,15 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/first-protector-count(\?.*)?$/", $request)) {
+    if ($method === 'GET') {
+        require_once 'first-protector-count.php';
+        $user_id = $_GET['user_id'] ?? null;
+        getFirstProtectorCount($pdo, $user_id);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 } elseif (preg_match("/\/favorite-tree$/", $request)) {
     if ($method === 'POST' || $method === 'GET') {
         require_once 'favorite-tree.php';
