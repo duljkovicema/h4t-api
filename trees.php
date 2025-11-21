@@ -50,6 +50,8 @@ function getTrees($pdo) {
                 ) AS owner_display_name,
                 fp.user_id AS first_protector_user_id,
                 COALESCE(
+                    NULLIF(TRIM(u_fp.first_protector_name), ''),
+                    NULLIF(TRIM(u_fp.nickname), ''),
                     NULLIF(TRIM(CONCAT(
                         IF(u_fp.show_first_name AND u_fp.first_name IS NOT NULL, CONCAT(u_fp.first_name,' '), ''),
                         IF(u_fp.show_last_name AND u_fp.last_name IS NOT NULL, CONCAT(u_fp.last_name,' '), ''),
