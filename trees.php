@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/sponsorships.php';
+
 function getTrees($pdo) {
     try {
         $sort = isset($_GET['sort']) ? strtolower(trim($_GET['sort'])) : '';
@@ -30,6 +32,13 @@ function getTrees($pdo) {
                 t.high_value,
                 t.high_value_cost,
                 t.high_value_name,
+                ts.zone_sponsorship_id AS tree_zone_sponsorship_id,
+                ts.mode AS tree_sponsorship_mode,
+                ts.tree_message AS tree_sponsorship_message,
+                sp.id AS tree_sponsor_id,
+                sp.name AS tree_sponsor_name,
+                sp.logo_url AS tree_sponsor_logo,
+                sp.website_url AS tree_sponsor_website,
                 COALESCE(
                     NULLIF(TRIM(CONCAT(
                         IF(u.show_first_name AND u.first_name IS NOT NULL, CONCAT(u.first_name,' '), ''),
@@ -65,11 +74,15 @@ function getTrees($pdo) {
             LEFT JOIN users u_owner ON t.user_id = u_owner.id
             LEFT JOIN first_protector fp ON fp.tree_id = t.id
             LEFT JOIN users u_fp ON fp.user_id = u_fp.id
+            LEFT JOIN tree_sponsorships ts ON ts.tree_id = t.id
+            LEFT JOIN sponsors sp ON sp.id = ts.sponsor_id
             ORDER BY $orderBy
         ";
 
         $stmt = $pdo->query($sql);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        hydrateTreeSponsorships($rows);
 
         echo json_encode($rows);
     } catch (PDOException $e) {

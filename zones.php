@@ -3,6 +3,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
+require_once __DIR__ . '/sponsorships.php';
+
 function getZones($pdo, $input = [])
 {
     try {
@@ -67,6 +69,8 @@ function getZones($pdo, $input = [])
                 'geometry' => json_decode($r['geometry'], true),
             ];
         }, $rows);
+
+        hydrateZoneSponsorships($pdo, $features);
 
         header("Content-Type: application/json; charset=UTF-8");
         echo json_encode([

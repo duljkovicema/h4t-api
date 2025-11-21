@@ -3,6 +3,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
+require_once __DIR__ . '/sponsorships.php';
+
 function getTreesByOwner($pdo, $owner_id)
 {
     if (empty($owner_id)) {
@@ -34,6 +36,13 @@ function getTreesByOwner($pdo, $owner_id)
                 t.high_value_name,
                 z.name as zone_name,
                 z.partner as zone_partner,
+                ts.zone_sponsorship_id AS tree_zone_sponsorship_id,
+                ts.mode AS tree_sponsorship_mode,
+                ts.tree_message AS tree_sponsorship_message,
+                sp.id AS tree_sponsor_id,
+                sp.name AS tree_sponsor_name,
+                sp.logo_url AS tree_sponsor_logo,
+                sp.website_url AS tree_sponsor_website,
                 COALESCE(
                     NULLIF(TRIM(CONCAT(
                         IF(u.show_first_name AND u.first_name IS NOT NULL, CONCAT(u.first_name,' '), ''),
@@ -70,6 +79,8 @@ function getTreesByOwner($pdo, $owner_id)
             LEFT JOIN users u_owner ON t.user_id = u_owner.id
             LEFT JOIN first_protector fp ON fp.tree_id = t.id
             LEFT JOIN users u_fp ON fp.user_id = u_fp.id
+            LEFT JOIN tree_sponsorships ts ON ts.tree_id = t.id
+            LEFT JOIN sponsors sp ON sp.id = ts.sponsor_id
             WHERE t.created_by = :owner_id
             ORDER BY t.id DESC
         ";
@@ -77,6 +88,8 @@ function getTreesByOwner($pdo, $owner_id)
         $stmt = $pdo->prepare($sql);
         $stmt->execute([":owner_id" => $owner_id]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        hydrateTreeSponsorships($rows);
 
         header("Content-Type: application/json; charset=UTF-8");
         echo json_encode($rows);

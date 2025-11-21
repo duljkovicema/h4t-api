@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/sponsorships.php';
+
 function uploadTree($pdo) {
     // Ensure uploads directory exists
     $uploadDir = __DIR__ . "/uploads";
@@ -50,21 +52,14 @@ function uploadTree($pdo) {
 
     $ts = date("Y-m-d H:i:s");
     $localTs = date("Y-m-d H:i:s"); // local time
+    $latFloat = floatval($lat);
+    $lonFloat = floatval($lon);
 
     try {
-        // Pokušaj s novim kolonama
-        $stmt = $pdo->prepare("
-            INSERT INTO trees (
-                latitude, longitude, created_at, created_at_local, image_path,
-                user_id, height_m, diameter_cm, species, carbon_kg,
-                no2_g_per_year, so2_g_per_year, o3_g_per_year, created_by,
-                altitude, sensor_data, analysis_confidence
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
-
-        $stmt->execute([
-            floatval($lat),
-            floatval($lon),
+        $pdo->beginTransaction();
+        $treeId = insertTreeRecord($pdo, [
+            $latFloat,
+            $lonFloat,
             $ts,
             $localTs,
             json_encode($photoPaths),
@@ -80,23 +75,22 @@ function uploadTree($pdo) {
             $altitude ? floatval($altitude) : null,
             $sensor_data ?: null,
             $analysis_confidence ? floatval($analysis_confidence) : null
+        ], true);
+
+        $sponsorship = assignTreeSponsorship($pdo, (int)$treeId, $latFloat, $lonFloat);
+        $pdo->commit();
+
+        echo json_encode([
+            "id" => $treeId,
+            "sponsorship" => $sponsorship
         ]);
-
-        echo json_encode(["id" => $pdo->lastInsertId()]);
     } catch (PDOException $e) {
-        // Ako ne uspije s novim kolonama, pokušaj s starim
+        $pdo->rollBack();
         try {
-            $stmt = $pdo->prepare("
-                INSERT INTO trees (
-                    latitude, longitude, created_at, created_at_local, image_path,
-                    user_id, height_m, diameter_cm, species, carbon_kg,
-                    no2_g_per_year, so2_g_per_year, o3_g_per_year, created_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ");
-
-            $stmt->execute([
-                floatval($lat),
-                floatval($lon),
+            $pdo->beginTransaction();
+            $treeId = insertTreeRecord($pdo, [
+                $latFloat,
+                $lonFloat,
                 $ts,
                 $localTs,
                 json_encode($photoPaths),
@@ -109,12 +103,43 @@ function uploadTree($pdo) {
                 $so2_g_per_year ? floatval($so2_g_per_year) : null,
                 $o3_g_per_year ? floatval($o3_g_per_year) : null,
                 $user_id ? intval($user_id) : null
-            ]);
+            ], false);
 
-            echo json_encode(["id" => $pdo->lastInsertId()]);
+            $sponsorship = assignTreeSponsorship($pdo, (int)$treeId, $latFloat, $lonFloat);
+            $pdo->commit();
+
+            echo json_encode([
+                "id" => $treeId,
+                "sponsorship" => $sponsorship
+            ]);
         } catch (PDOException $e2) {
+            $pdo->rollBack();
             http_response_code(500);
             echo json_encode(["error" => "Database error: " . $e2->getMessage()]);
         }
     }
+}
+
+function insertTreeRecord(PDO $pdo, array $values, bool $extended): int {
+    if ($extended) {
+        $stmt = $pdo->prepare("
+            INSERT INTO trees (
+                latitude, longitude, created_at, created_at_local, image_path,
+                user_id, height_m, diameter_cm, species, carbon_kg,
+                no2_g_per_year, so2_g_per_year, o3_g_per_year, created_by,
+                altitude, sensor_data, analysis_confidence
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+    } else {
+        $stmt = $pdo->prepare("
+            INSERT INTO trees (
+                latitude, longitude, created_at, created_at_local, image_path,
+                user_id, height_m, diameter_cm, species, carbon_kg,
+                no2_g_per_year, so2_g_per_year, o3_g_per_year, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+    }
+
+    $stmt->execute($values);
+    return (int)$pdo->lastInsertId();
 }

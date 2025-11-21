@@ -338,6 +338,15 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/sync-zone-sponsorship$/", $request)) {
+    if ($method === 'POST') {
+        require_once 'sync-zone-sponsorship.php';
+        $input = json_decode(file_get_contents("php://input"), true) ?? [];
+        syncZoneSponsorship($pdo, $input);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 }
 else {
     http_response_code(404);

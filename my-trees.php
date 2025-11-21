@@ -3,6 +3,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
+require_once __DIR__ . '/sponsorships.php';
+
 function getMyTrees($pdo, $user_id) {
     if (!$user_id) {
         http_response_code(400);
@@ -25,8 +27,17 @@ function getMyTrees($pdo, $user_id) {
                 carbon_kg, 
                 no2_g_per_year, 
                 so2_g_per_year, 
-                o3_g_per_year  
-            FROM trees 
+                o3_g_per_year,
+                ts.zone_sponsorship_id AS tree_zone_sponsorship_id,
+                ts.mode AS tree_sponsorship_mode,
+                ts.tree_message AS tree_sponsorship_message,
+                sp.id AS tree_sponsor_id,
+                sp.name AS tree_sponsor_name,
+                sp.logo_url AS tree_sponsor_logo,
+                sp.website_url AS tree_sponsor_website
+            FROM trees
+            LEFT JOIN tree_sponsorships ts ON ts.tree_id = trees.id
+            LEFT JOIN sponsors sp ON sp.id = ts.sponsor_id
             WHERE user_id = :user_id 
             ORDER BY id DESC
         ";
@@ -34,6 +45,8 @@ function getMyTrees($pdo, $user_id) {
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['user_id' => $user_id]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        hydrateTreeSponsorships($rows);
 
         echo json_encode($rows);
     } catch (PDOException $e) {
