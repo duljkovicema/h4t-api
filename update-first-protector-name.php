@@ -9,16 +9,21 @@ function updateFirstProtectorName($pdo, $input) {
     }
 
     try {
+        $firstProtectorName = !empty($input['first_protector_name']) ? trim($input['first_protector_name']) : null;
+        // Ako je prazan string nakon trim, postavi na NULL
+        if ($firstProtectorName === '') {
+            $firstProtectorName = null;
+        }
+        
         $sql = "
             UPDATE users
-            SET first_protector_name = :first_protector_name,
-                updated_at = NOW()
+            SET first_protector_name = :first_protector_name
             WHERE id = :user_id
         ";
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            ":first_protector_name" => !empty($input['first_protector_name']) ? trim($input['first_protector_name']) : null,
+            ":first_protector_name" => $firstProtectorName,
             ":user_id"              => $input['user_id']
         ]);
 
@@ -26,7 +31,11 @@ function updateFirstProtectorName($pdo, $input) {
     } catch (PDOException $e) {
         error_log("DB error: " . $e->getMessage());
         http_response_code(500);
-        echo json_encode(["error" => "Database error"]);
+        echo json_encode([
+            "error" => "Database error",
+            "message" => $e->getMessage(),
+            "code" => $e->getCode()
+        ]);
     }
 }
 
