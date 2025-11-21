@@ -11,6 +11,16 @@ function getTrees($pdo) {
             $orderBy = "t.likes DESC, t.created_at_local DESC, t.id DESC";
         }
 
+        // Check if tree_sponsorships table exists
+        $hasSponsorships = false;
+        try {
+            $check = $pdo->query("SELECT 1 FROM tree_sponsorships LIMIT 1");
+            $hasSponsorships = true;
+        } catch (PDOException $e) {
+            // Table doesn't exist, skip sponsorship joins
+            $hasSponsorships = false;
+        }
+
         $sql = "
             SELECT
                 t.id,
@@ -32,6 +42,7 @@ function getTrees($pdo) {
                 t.high_value,
                 t.high_value_cost,
                 t.high_value_name,
+                " . ($hasSponsorships ? "
                 ts.zone_sponsorship_id AS tree_zone_sponsorship_id,
                 ts.mode AS tree_sponsorship_mode,
                 ts.tree_message AS tree_sponsorship_message,
@@ -39,6 +50,15 @@ function getTrees($pdo) {
                 sp.name AS tree_sponsor_name,
                 sp.logo_url AS tree_sponsor_logo,
                 sp.website_url AS tree_sponsor_website,
+                " : "
+                NULL AS tree_zone_sponsorship_id,
+                NULL AS tree_sponsorship_mode,
+                NULL AS tree_sponsorship_message,
+                NULL AS tree_sponsor_id,
+                NULL AS tree_sponsor_name,
+                NULL AS tree_sponsor_logo,
+                NULL AS tree_sponsor_website,
+                ") . "
                 COALESCE(
                     NULLIF(TRIM(CONCAT(
                         IF(u.show_first_name AND u.first_name IS NOT NULL, CONCAT(u.first_name,' '), ''),
@@ -74,15 +94,25 @@ function getTrees($pdo) {
             LEFT JOIN users u_owner ON t.user_id = u_owner.id
             LEFT JOIN first_protector fp ON fp.tree_id = t.id
             LEFT JOIN users u_fp ON fp.user_id = u_fp.id
+            " . ($hasSponsorships ? "
             LEFT JOIN tree_sponsorships ts ON ts.tree_id = t.id
             LEFT JOIN sponsors sp ON sp.id = ts.sponsor_id
+            " : "") . "
             ORDER BY $orderBy
         ";
 
         $stmt = $pdo->query($sql);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        hydrateTreeSponsorships($rows);
+        if ($hasSponsorships) {
+            hydrateTreeSponsorships($rows);
+        } else {
+            // Add null sponsorship to all rows if table doesn't exist
+            foreach ($rows as &$row) {
+                $row['sponsorship'] = null;
+            }
+            unset($row);
+        }
 
         echo json_encode($rows);
     } catch (PDOException $e) {
