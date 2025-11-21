@@ -174,6 +174,15 @@ if (preg_match("/\/upload-tree$/", $request)) {
         http_response_code(405);
         echo json_encode(["error" => "Method not allowed"]);
     }
+} elseif (preg_match("/\/update-first-protector-name$/", $request)) {
+    if ($method === 'POST') {
+        require_once 'update-first-protector-name.php';
+        $input = json_decode(file_get_contents("php://input"), true);
+        updateFirstProtectorName($pdo, $input);
+    } else {
+        http_response_code(405);
+        echo json_encode(["error" => "Method not allowed"]);
+    }
 } elseif (preg_match("/\/like-tree$/", $request)) {
     if ($method === 'POST') {
         require_once 'like-tree.php';
