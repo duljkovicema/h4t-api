@@ -32,6 +32,33 @@ function adminLogin($pdo, $data) {
             return;
         }
 
+        // Uspješna prijava - automatski sync zone sponsorships u pozadini
+        try {
+            require_once __DIR__ . '/sponsorships.php';
+            
+            // Pronađi sve aktivne zone_sponsorships koje treba sync-ati
+            $stmt = $pdo->query("
+                SELECT id 
+                FROM zone_sponsorships 
+                WHERE status = 'active' 
+                  AND NOW() BETWEEN starts_at AND COALESCE(ends_at, '2999-12-31')
+            ");
+            $sponsorships = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            // Sync-aj svaki sponsorship u pozadini (ne blokira login ako nešto ne uspije)
+            foreach ($sponsorships as $sponsorshipId) {
+                try {
+                    backfillZoneSponsorship($pdo, (int)$sponsorshipId);
+                } catch (Exception $e) {
+                    // Ignoriraj greške pojedinačnih sync-ova, samo logiraj
+                    error_log("Auto-sync failed for sponsorship {$sponsorshipId}: " . $e->getMessage());
+                }
+            }
+        } catch (Exception $e) {
+            // Ignoriraj greške sync-a, login mora proći
+            error_log("Auto-sync error on admin login: " . $e->getMessage());
+        }
+
         // Uspješna prijava
         echo json_encode([
             "success" => true,
